@@ -1,21 +1,48 @@
-# Next.js template
+# heyalok
 
-This is a Next.js template with shadcn/ui.
+Personal portfolio and blog — built with Next.js, deployed on Cloudflare Workers via OpenNext.
 
-## Adding components
+## Tech Stack
 
-To add components to your app, run the following command:
+- **Framework:** Next.js + React
+- **Styling:** Tailwind CSS v4, shadcn/ui
+- **State:** Zustand, TanStack React Query
+- **Infra:** Cloudflare Workers, R2, Upstash Redis
+- **Integrations:** GitHub, WakaTime, Spotify, Medium RSS
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+## Scripts
+
+| Command              | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `npm run dev`        | Start dev server                            |
+| `npm run build`      | Build for Cloudflare (via OpenNext)         |
+| `npm run deploy`     | Build and deploy to Cloudflare Workers      |
+| `npm run preview`    | Build and preview Cloudflare Worker locally |
+| `npm run lint`       | Run ESLint                                  |
+| `npm run typecheck`  | Run TypeScript check                        |
+| `npm run format`     | Format with Prettier                        |
+| `npm run scrape`     | Scrape Medium RSS → blog MDX files          |
+| `npm run cf-typegen` | Generate Cloudflare env types               |
+
+## Adding shadcn/ui Components
 
 ```bash
 npx shadcn@latest add button
 ```
 
-This will place the ui components in the `components` directory.
+Import from `@/components/ui/`.
 
-## Using components
+## Deployment
 
-To use the components in your app, import them as follows:
+Deploys to Cloudflare Workers via OpenNext:
 
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+npm run deploy
 ```
