@@ -34,18 +34,25 @@ const getR2Endpoint = () => {
   return `https://${requireEnv("CLOUDFLARE_ACCOUNT_ID")}.r2.cloudflarestorage.com`
 }
 
-export const r2 = new S3Client({
-  region: "auto",
-  endpoint: getR2Endpoint(),
-  credentials: {
-    accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
-    secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
-  },
-})
+let _r2: S3Client | null = null
+
+const getR2 = () => {
+  if (!_r2) {
+    _r2 = new S3Client({
+      region: "auto",
+      endpoint: getR2Endpoint(),
+      credentials: {
+        accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
+        secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
+      },
+    })
+  }
+  return _r2
+}
 
 export const getSignedR2Url = (key: string, expiresIn = 60 * 60 * 24 * 30) => {
   return getSignedUrl(
-    r2,
+    getR2(),
     new GetObjectCommand({
       Bucket: requireEnv("R2_BUCKET_NAME", "R2_BUCKET"),
       Key: key,
@@ -68,7 +75,7 @@ export const getObjectContent = async (key: string): Promise<string> => {
     Bucket: requireEnv("R2_BUCKET_NAME", "R2_BUCKET"),
     Key: key,
   })
-  const response = await r2.send(command)
+  const response = await getR2().send(command)
   return await response.Body?.transformToString() ?? ""
 }
 
@@ -78,7 +85,7 @@ export const listR2Objects = async (prefix: string) => {
     Prefix: prefix,
   })
 
-  const response = await r2.send(command)
+  const response = await getR2().send(command)
 
   return (response.Contents ?? [])
     .map((obj) => obj.Key)
