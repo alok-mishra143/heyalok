@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="160" viewBox="0 0 800 160">
+  <style>
+    :root {
+      --bg-start: #f0edf2;
+      --bg-end: #e8e4eb;
+      --bar-start: #d1cbd8;
+      --bar-end: #c0b9c8;
+      --glow: #a78bfa;
+      --dot: #c4bfca;
+      --stroke: #d4cfdb;
+      --fill-secondary: #d4cfdb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-start: #1e1b24;
+        --bg-end: #14121a;
+        --bar-start: #7e7790;
+        --bar-end: #6b647c;
+        --glow: #a78bfa;
+        --dot: #5c5668;
+        --stroke: #4a4458;
+        --fill-secondary: #4a4458;
+      }
+    }
+  </style>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--bg-start)"/>
+      <stop offset="100%" stop-color="var(--bg-end)"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--bar-start)"/>
+      <stop offset="100%" stop-color="var(--bar-end)"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="80%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="var(--glow)" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="var(--glow)" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="0.5" fill="var(--dot)" opacity="0.35"/>
+    </pattern>
+  </defs>
+
+  <rect width="800" height="160" fill="url(#bg)"/>
+  <rect width="800" height="160" fill="url(#dots)"/>
+  <rect width="800" height="160" fill="url(#glow)"/>
+
+  <g fill="url(#bar)" opacity="0.3">
+    <rect x="560" y="65" width="8" height="35" rx="4"/>
+    <rect x="576" y="50" width="8" height="65" rx="4"/>
+    <rect x="592" y="35" width="8" height="95" rx="4"/>
+    <rect x="608" y="55" width="8" height="55" rx="4"/>
+    <rect x="624" y="25" width="8" height="115" rx="4"/>
+    <rect x="640" y="45" width="8" height="75" rx="4"/>
+    <rect x="656" y="60" width="8" height="45" rx="4"/>
+    <rect x="672" y="30" width="8" height="105" rx="4"/>
+    <rect x="688" y="55" width="8" height="55" rx="4"/>
+    <rect x="704" y="40" width="8" height="85" rx="4"/>
+  </g>
+
+  <g stroke="var(--stroke)" stroke-width="0.5" fill="none" opacity="0.35">
+    <circle cx="160" cy="80" r="60"/>
+    <circle cx="160" cy="80" r="45"/>
+    <circle cx="160" cy="80" r="30"/>
+  </g>
+
+  <rect x="60" y="52" width="64" height="8" rx="4" fill="var(--fill-secondary)" opacity="0.3"/>
+  <rect x="60" y="70" width="40" height="8" rx="4" fill="var(--fill-secondary)" opacity="0.2"/>
+  <rect x="60" y="106" width="52" height="8" rx="4" fill="var(--fill-secondary)" opacity="0.15"/>
+</svg>

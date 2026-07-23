@@ -1,0 +1,57 @@
+---
+title: "Must-Take Precautions While Designing Your Backend"
+subtitle: "Most backend systems don’t fail because of bad logic. They fail because of bad structure, blind trus..."
+date: "14.03.2026"
+slug: "must-take-precautions-while-designing-your-backend"
+keywords: ["backend","security","nodejs","backend-development","software-development"]
+link: "https://zerion0.medium.com/must-take-precautions-while-designing-your-backend-5feae108bada?source=rss-d85eba17769f------2"
+---
+
+<p id="blog-heading-0-el-0">Most backend systems don’t fail because of bad logic. They fail because of bad structure, blind trust, and decisions made in a hurry that nobody wants to touch six months later. Whether you’re starting fresh or scaling something existing, there are a handful of things that will save you enormous pain down the road. This is not a beginner’s tutorial. These are lessons learned from real projects that either held up or fell apart.</p><figure id="blog-heading-0-el-1"><img src="https://cdn-images-1.medium.com/max/796/1*tyKLWp3lKqvUIm8Ye6zLtQ.png" loading="lazy" /><figcaption>Backend checklist</figcaption></figure><h3 id="blog-heading-0">1. Structure Your Folders by Feature, Not by Function</h3><p id="blog-heading-1-el-0">No doubt you learn this structure while learning from online toturial or making any project following this classing service, controller, routes</p><p id="blog-heading-1-el-1">The classic mistake looks like this:</p><pre id="blog-heading-1-el-2">/controllers
+  authController.js
+  userController.js
+/services
+  authService.js
+  userService.js
+/routes
+  authRoute.js
+  userRoute.js</pre><p id="blog-heading-1-el-3">At first glance it feels organized. But every time you work on the auth feature, you&#39;re jumping across three folders. Your mental model of &quot;auth&quot; is scattered across your entire codebase.</p><p id="blog-heading-1-el-4">Instead, group by feature:</p><pre id="blog-heading-1-el-5">/auth
+  auth.controller.js
+  auth.service.js
+  auth.route.js
+/user
+  user.controller.js
+  user.service.js
+  user.route.js
+/order
+  order.controller.js
+  order.service.js
+  order.route.js</pre><p id="blog-heading-1-el-6">Now when a new developer joins and needs to touch auth, they go to /auth and everything they need is right there. Deleting a feature becomes a single folder deletion. Testing becomes easier. Ownership is clear.</p><p id="blog-heading-1-el-7">This pattern becomes non-negotiable once your codebase grows past a certain size.</p><h3 id="blog-heading-1">2. Never Trust the Client</h3><p id="blog-heading-2-el-0">Your frontend is not your security layer. It never was. Anyone with a browser devtools window or a curl command can send whatever they want to your API. Input that looks clean in your UI can arrive at your server completely malformed, malicious, or just plain wrong.</p><p id="blog-heading-2-el-1">Add validation on the server side. Always. Use <strong>Zod</strong> or a similar schema library:</p><pre id="blog-heading-2-el-2">import { z } from &quot;zod&quot;;
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  username: z.string().min(3).max(20),
+});
+// In your route handler
+const result = registerSchema.safeParse(req.body);
+if (!result.success) {
+  return res.status(400).json({ errors: result.error.flatten() });
+}</pre><p id="blog-heading-2-el-3">The rule is simple: validate the shape, type, and constraints of every incoming request before it touches your business logic or your database. No exceptions.</p><h3 id="blog-heading-2">3. Add a Rate Limiter</h3><p id="blog-heading-3-el-0">Without rate limiting, a single user can hammer your API thousands of times per minute. That might be someone trying to brute force a login, scrape your data, or just a bug in their client making infinite retry loops.</p><p id="blog-heading-3-el-1">Rate limiting is a one-time setup with a large payoff. Using Express? express-rate-limit is simple and effective:</p><pre id="blog-heading-3-el-2">import rateLimit from &quot;express-rate-limit&quot;;
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  message: &quot;Too many requests, please try again later.&quot;,
+});
+app.use(&quot;/api&quot;, limiter);</pre><p id="blog-heading-3-el-3">For auth routes specifically, make it stricter. A login endpoint should not allow 100 attempts in 15 minutes from the same IP. Drop that to 5 or 10 and lock it down.</p><figure id="blog-heading-3-el-4"><img src="https://cdn-images-1.medium.com/max/1005/1*vLR5iafW0D01KMSWOU_0Sw.png" loading="lazy" /><figcaption>how rate limiter protect you</figcaption></figure><h3 id="blog-heading-3">4. Cache Frequently Accessed Data with Redis</h3><p id="blog-heading-4-el-0">If your app is reading the same data from the database on every request, you’re leaving a lot of performance on the table. User profiles, product catalogs, configuration settings, dashboard summaries. These don’t change on every request, yet many backends query the database every single time.</p><p id="blog-heading-4-el-1">Redis fixes this:</p><pre id="blog-heading-4-el-2">import redis from &quot;ioredis&quot;;
+const client = new redis();
+async function getUserProfile(userId) {
+  const cached = await client.get(`user:${userId}`);
+  if (cached) return JSON.parse(cached);
+  const user = await db.users.findById(userId);
+  await client.setex(`user:${userId}`, 3600, JSON.stringify(user));
+  return user;
+}</pre><p id="blog-heading-4-el-3">The pattern is straightforward: check the cache first, hit the database only on a miss, and write the result back to cache with an expiry. Your database will thank you when traffic spikes.</p><h3 id="blog-heading-4">5. Stop Reaching for External Packages for Small Tasks</h3><figure id="blog-heading-5-el-0"><img src="https://cdn-images-1.medium.com/max/867/1*uIe-64ljVc5HKqkLPdq1Og.png" loading="lazy" /><figcaption>the blackhole theory of node modules</figcaption></figure><p id="blog-heading-5-el-2">This one is a slow leak. You add a package to check if a string is a palindrome. Another one to capitalize a word. Another for deep equality checks. Before long, your node_modules is 400MB and half of it is solving problems that are two lines of JavaScript.</p><p id="blog-heading-5-el-3">Every external dependency is a maintenance burden, a potential security vulnerability, and a source of supply chain risk. The npm ecosystem has had multiple incidents where a small, widely used package was compromised or simply deleted, breaking thousands of projects overnight. Before installing anything, ask yourself: can I write this in under 20 lines?</p><p id="blog-heading-5-el-4">That said, there are cases where the logic is genuinely complex. Temporary email detection is one of them. If you’re building anything with user accounts, people will sign up with throwaway emails from services like Mailinator or Guerrilla Mail to skip your onboarding flow, bypass paywalls, or just avoid getting any follow-up.</p><p id="blog-heading-5-el-5">Here is the thing though: you don’t need a package for this either. There is a GitHub repo called disposable-email-domains that maintains a list of over 3000 known throwaway email domains. Just copy that list into your own project as a local file:</p><pre id="blog-heading-5-el-6">import { validate } from &quot;deep-email-validator&quot;;
+const result = await validate(&quot;user@mailinator.com&quot;);
+if (!result.valid) {
+  return res.status(400).json({ error: &quot;Disposable emails are not allowed.&quot; });
+}</pre><p id="blog-heading-5-el-7">The rule is: be picky. Add dependencies that solve genuinely hard problems. Don’t add them because you don’t want to write a for loop.</p><figure id="blog-heading-5-el-8"><img src="https://cdn-images-1.medium.com/max/1024/1*RyrOLR_23n16nqlaQ8KJ7w.png" loading="lazy" /></figure><h3 id="blog-heading-5">6. Design Before You Code</h3><p id="blog-heading-6-el-0">This one gets skipped the most and causes the most regret.</p><p id="blog-heading-6-el-1">Before you write a single route, sit down with a tool like Excalidraw and sketch out how your system actually works. Draw the entities. Draw the data flow. Map out which service calls which. Decide where authentication sits. Figure out where caching makes sense. Think about what happens when things fail.</p><p id="blog-heading-6-el-2">A design-first approach forces you to catch bad ideas before they become bad code. Changing a box in a diagram takes ten seconds. Refactoring a tightly coupled service takes three days. The investment pays for itself before you’ve written a single line.</p><p id="blog-heading-6-el-3">You don’t need a fancy tool. Excalidraw is free, fast, and runs in the browser. The habit matters more than the tool.</p><figure id="blog-heading-6-el-4"><img src="https://cdn-images-1.medium.com/max/993/1*wVuoiirtc1d0VS4LA6Q9pQ.png" loading="lazy" /></figure><h3 id="blog-heading-6">Wrapping Up</h3><p id="blog-heading-7-el-0">None of these things are exotic. They’re all well-known practices, but the gap between knowing them and actually doing them is where most backend problems are born. Structure your folders so a new developer can navigate them. Validate everything that comes from the outside. Protect your endpoints with rate limiting. Cache data that doesn’t need to be fetched fresh every time. Be deliberate about your dependencies. And before you write any of it, think it through on paper first.</p><p id="blog-heading-7-el-1">Get these six things right and you’ll spend a lot less time firefighting and a lot more time building.</p>
