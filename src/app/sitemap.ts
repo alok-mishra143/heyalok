@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next"
+
+export const dynamic = "force-dynamic"
 import { navRoutes } from "@/data/data"
 import { siteConfig } from "@/lib/site"
 
