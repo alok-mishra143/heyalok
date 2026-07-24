@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+
+export const dynamic = "force-dynamic"
 import { Suspense } from "react"
 import { Geist_Mono, Inter, Pixelify_Sans } from "next/font/google"
 
