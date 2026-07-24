@@ -1,58 +1,58 @@
-import "server-only";
-import { listR2Objects, getObjectContent } from "@/lib/r2";
-import type { BlogPost } from "@/data/blog";
+import "server-only"
+import { listR2Objects, getObjectContent } from "@/lib/r2"
+import type { BlogPost } from "@/data/blog"
 
-type BlogData = (BlogPost & { content: string })[];
+type BlogData = (BlogPost & { content: string })[]
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
+const CACHE_TTL = 24 * 60 * 60 * 1000 // 1 day
 
-let cache: BlogData | null = null;
-let cacheTime = 0;
-let loadingPromise: Promise<BlogData> | null = null;
+let cache: BlogData | null = null
+let cacheTime = 0
+let loadingPromise: Promise<BlogData> | null = null
 
 function parseBlog(raw: string): (BlogPost & { content: string }) | null {
-  if (!raw.startsWith("---")) return null;
+  if (!raw.startsWith("---")) return null
 
-  const lines = raw.split("\n");
+  const lines = raw.split("\n")
 
-  let end = -1;
+  let end = -1
   for (let i = 1; i < lines.length; i++) {
     if (lines[i].trim() === "---") {
-      end = i;
-      break;
+      end = i
+      break
     }
   }
 
-  if (end === -1) return null;
+  if (end === -1) return null
 
-  const fm: Record<string, unknown> = {};
+  const fm: Record<string, unknown> = {}
 
   for (let i = 1; i < end; i++) {
-    const line = lines[i];
-    const idx = line.indexOf(":");
-    if (idx === -1) continue;
+    const line = lines[i]
+    const idx = line.indexOf(":")
+    if (idx === -1) continue
 
-    const key = line.slice(0, idx).trim();
-    const value = line.slice(idx + 1).trim();
+    const key = line.slice(0, idx).trim()
+    const value = line.slice(idx + 1).trim()
 
     if (value.startsWith("[") && value.endsWith("]")) {
       try {
-        fm[key] = JSON.parse(value);
+        fm[key] = JSON.parse(value)
       } catch {
         fm[key] = value
           .slice(1, -1)
           .split(",")
-          .map((v) => v.trim().replace(/^"|"$/g, ""));
+          .map((v) => v.trim().replace(/^"|"$/g, ""))
       }
     } else if (value.startsWith('"') && value.endsWith('"')) {
-      fm[key] = value.slice(1, -1);
+      fm[key] = value.slice(1, -1)
     } else {
-      fm[key] = value;
+      fm[key] = value
     }
   }
 
   if (typeof fm.title !== "string" || typeof fm.slug !== "string") {
-    return null;
+    return null
   }
 
   return {
@@ -64,12 +64,15 @@ function parseBlog(raw: string): (BlogPost & { content: string }) | null {
       ? fm.keywords.map((k) => ({ label: String(k) }))
       : [],
     link: typeof fm.link === "string" ? fm.link : "",
-    content: lines.slice(end + 1).join("\n").trim(),
-  };
+    content: lines
+      .slice(end + 1)
+      .join("\n")
+      .trim(),
+  }
 }
 
 async function loadBlogs(): Promise<BlogData> {
-  const keys = await listR2Objects("blogs/");
+  const keys = await listR2Objects("blogs/")
 
   const posts = (
     await Promise.all(
@@ -77,48 +80,51 @@ async function loadBlogs(): Promise<BlogData> {
         .filter((key) => key.endsWith(".mdx"))
         .map(async (key) => {
           try {
-            const raw = await getObjectContent(key);
-            return parseBlog(raw);
+            const raw = await getObjectContent(key)
+            return parseBlog(raw)
           } catch {
-            return null;
+            return null
           }
         })
     )
-  ).filter((p): p is BlogPost & { content: string } => p !== null);
+  ).filter((p): p is BlogPost & { content: string } => p !== null)
 
   posts.sort((a, b) => {
-    const [da, ma, ya] = a.date.split(".").map(Number);
-    const [db, mb, yb] = b.date.split(".").map(Number);
+    const [da, ma, ya] = a.date.split(".").map(Number)
+    const [db, mb, yb] = b.date.split(".").map(Number)
 
     return (
-      new Date(yb, mb - 1, db).getTime() -
-      new Date(ya, ma - 1, da).getTime()
-    );
-  });
+      new Date(yb, mb - 1, db).getTime() - new Date(ya, ma - 1, da).getTime()
+    )
+  })
 
-  return posts;
+  return posts
 }
 
 export async function fetchAllBlogData(): Promise<BlogData> {
-  const now = Date.now();
+  const now = Date.now()
 
   if (cache && now - cacheTime < CACHE_TTL) {
-    return cache;
+    return cache
   }
 
   if (loadingPromise) {
-    return loadingPromise;
+    return loadingPromise
   }
 
   loadingPromise = loadBlogs()
     .then((data) => {
-      cache = data;
-      cacheTime = Date.now();
-      return data;
+      cache = data
+      cacheTime = Date.now()
+      return data
+    })
+    .catch((error) => {
+      console.error("Failed to load blogs from R2:", error)
+      return cache ?? []
     })
     .finally(() => {
-      loadingPromise = null;
-    });
+      loadingPromise = null
+    })
 
-  return loadingPromise;
+  return loadingPromise
 }

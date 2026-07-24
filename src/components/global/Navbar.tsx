@@ -141,6 +141,8 @@ const Navbar = () => {
                 <Link
                   href={item.href}
                   key={item.label}
+                  target={item.target}
+                  rel={item.target === "_blank" ? "noreferrer" : undefined}
                   className={cn(
                     "relative flex items-center px-0.5 py-1 ring-0",
                     isActive && "text-primary/80",

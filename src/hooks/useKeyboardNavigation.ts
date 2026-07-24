@@ -5,9 +5,11 @@ import { useRouter, usePathname } from "next/navigation"
 import { navRoutes } from "@/data/data"
 import { useExpandStore } from "@/store/expand-store"
 
-const shortcutMap = navRoutes.reduce<Record<string, string>>((map, route) => {
+const shortcutMap = navRoutes.reduce<
+  Record<string, { href: string; target?: "_blank" | "_self" }>
+>((map, route) => {
   if (route.shortCutKey) {
-    map[route.shortCutKey] = route.href
+    map[route.shortCutKey] = { href: route.href, target: route.target }
   }
   return map
 }, {})
@@ -41,10 +43,14 @@ export function useKeyboardNavigation() {
 
       const key = e.key.toLowerCase()
 
-      const href = shortcutMap[key]
-      if (href) {
+      const route = shortcutMap[key]
+      if (route) {
         e.preventDefault()
-        router.push(href)
+        if (route.target === "_blank") {
+          window.open(route.href, "_blank", "noopener,noreferrer")
+        } else {
+          router.push(route.href)
+        }
         return
       }
 

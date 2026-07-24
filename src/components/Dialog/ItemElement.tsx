@@ -49,11 +49,7 @@ const ItemElement = ({
 }: ItemElementProps) => {
   const content = (
     <>
-      {iconSlot ? (
-        iconSlot
-      ) : icon ? (
-        <DialogIcon icon={icon} />
-      ) : null}
+      {iconSlot ? iconSlot : icon ? <DialogIcon icon={icon} /> : null}
 
       <span className="min-w-0 flex-1">
         <span className="block text-sm leading-none font-medium">{label}</span>
@@ -78,6 +74,7 @@ const ItemElement = ({
         data-hover="card-element"
         href={href}
         target={target}
+        rel={target === "_blank" ? "noreferrer" : undefined}
         onClick={onClick}
         className={cn(itemClass, className)}
       >

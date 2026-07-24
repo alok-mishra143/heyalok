@@ -66,6 +66,7 @@ export type RouteGroup = "navigate" | "explore"
 import {
   House,
   FileText,
+  FileUser,
   BookOpen,
   Gamepad2,
   Wrench,
@@ -82,6 +83,7 @@ export type RouteItem = {
   footer: boolean
   subTitle: string
   shortCutKey?: string
+  target?: "_blank" | "_self"
 }
 
 export const navRoutes: RouteItem[] = [
@@ -94,6 +96,17 @@ export const navRoutes: RouteItem[] = [
     footer: true,
     subTitle: "Go to Home",
     shortCutKey: "h",
+  },
+  {
+    label: "Resume",
+    href: "/resume.pdf",
+    icon: FileUser,
+    group: "navigate",
+    nav: false,
+    footer: true,
+    subTitle: "My Resume",
+    shortCutKey: "r",
+    target: "_blank",
   },
   {
     label: "Blog",

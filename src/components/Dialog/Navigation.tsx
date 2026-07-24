@@ -44,6 +44,7 @@ const Navigation = ({ onNavigate }: NavigationProps) => {
             subTitle={route.subTitle}
             shortcutKey={route.shortCutKey}
             href={route.href}
+            target={route.target}
             onClick={onNavigate}
           />
         ))}

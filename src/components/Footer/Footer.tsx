@@ -92,6 +92,12 @@ const Footer = () => {
                           <Link
                             key={route.href}
                             href={route.href}
+                            target={route.target}
+                            rel={
+                              route.target === "_blank"
+                                ? "noreferrer"
+                                : undefined
+                            }
                             className="relative flex items-center gap-1 py-1.5 text-background/60 transition-colors hover:text-background focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
                           >
                             <NavIcon icon={route.icon} size={16} />

@@ -12,21 +12,26 @@ const routePriority = new Map([
 ])
 
 async function fetchBlogSlugs(): Promise<{ slug: string; date: string }[]> {
-  const { listR2Objects, getObjectContent } = await import("@/lib/r2")
-  const keys = await listR2Objects("blogs/")
-  const slugs: { slug: string; date: string }[] = []
+  try {
+    const { listR2Objects, getObjectContent } = await import("@/lib/r2")
+    const keys = await listR2Objects("blogs/")
+    const slugs: { slug: string; date: string }[] = []
 
-  for (const key of keys) {
-    if (!key.endsWith(".mdx")) continue
-    const raw = await getObjectContent(key)
-    const slugMatch = raw.match(/^slug:\s*"([^"]+)"$/m)
-    const dateMatch = raw.match(/^date:\s*"([^"]+)"$/m)
-    if (slugMatch) {
-      slugs.push({ slug: slugMatch[1], date: dateMatch?.[1] ?? "" })
+    for (const key of keys) {
+      if (!key.endsWith(".mdx")) continue
+      const raw = await getObjectContent(key)
+      const slugMatch = raw.match(/^slug:\s*"([^"]+)"$/m)
+      const dateMatch = raw.match(/^date:\s*"([^"]+)"$/m)
+      if (slugMatch) {
+        slugs.push({ slug: slugMatch[1], date: dateMatch?.[1] ?? "" })
+      }
     }
-  }
 
-  return slugs
+    return slugs
+  } catch (error) {
+    console.error("Failed to load blog slugs for sitemap:", error)
+    return []
+  }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
