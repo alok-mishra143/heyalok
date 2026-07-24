@@ -12,12 +12,12 @@ const RecentProjects = () => {
   if (recent.length === 0) return null
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative z-0 space-y-6">
       <div className="font-pixel">
         <h2 className="text-2xl">Recent Projects</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
         {recent.map((project) => (
           <ProjectCard
             key={project.title}
