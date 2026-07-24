@@ -53,7 +53,7 @@ export async function GET() {
   if (!token) {
     return NextResponse.json(
       { error: "GitHub token not configured" },
-      { status: 500 },
+      { status: 500 }
     )
   }
 
@@ -63,6 +63,7 @@ export async function GET() {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+        "User-Agent": "heyalok-portfolio",
       },
       body: JSON.stringify({
         query: QUERY,
@@ -76,7 +77,7 @@ export async function GET() {
       console.error("GitHub GraphQL error:", text)
       return NextResponse.json(
         { error: "Failed to fetch from GitHub" },
-        { status: res.status },
+        { status: res.status }
       )
     }
 
@@ -86,12 +87,11 @@ export async function GET() {
       console.error("GitHub GraphQL errors:", json.errors)
       return NextResponse.json(
         { error: "GitHub API error", details: json.errors },
-        { status: 500 },
+        { status: 500 }
       )
     }
 
-    const repos: PinnedRepo[] =
-      json.data?.user?.pinnedItems?.nodes ?? []
+    const repos: PinnedRepo[] = json.data?.user?.pinnedItems?.nodes ?? []
 
     return NextResponse.json(repos, {
       headers: {
@@ -102,7 +102,7 @@ export async function GET() {
     console.error("GitHub pinned repos fetch error:", err)
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }
